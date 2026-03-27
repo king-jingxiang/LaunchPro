@@ -1,11 +1,11 @@
 <div align="center">
 
-# ProManager
+# LaunchPro
 
 **A lightweight cross-platform project manager for developers**
 
-[![GitHub release](https://img.shields.io/github/v/release/king-jingxiang/ProManager?style=flat-square)](https://github.com/king-jingxiang/ProManager/releases)
-[![GitHub license](https://img.shields.io/github/license/king-jingxiang/ProManager?style=flat-square)](LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/king-jingxiang/LaunchPro?style=flat-square)](https://github.com/king-jingxiang/LaunchPro/releases)
+[![GitHub license](https://img.shields.io/github/license/king-jingxiang/LaunchPro?style=flat-square)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-blue?style=flat-square)](#cross-platform-support)
 
 **English** · [简体中文](./README.zh-CN.md)
@@ -14,7 +14,7 @@
 
 ---
 
-ProManager is a fast, minimal desktop app that helps developers manage all their local projects in one place. Quickly browse, organize, and open any project with your favorite IDE or editor — all from a clean, native-feeling interface.
+LaunchPro is a fast, minimal desktop app that helps developers manage all their local projects in one place. Quickly browse, organize, and open any project with your favorite IDE or editor — all from a clean, native-feeling interface.
 
 ## Features
 
@@ -33,7 +33,7 @@ ProManager is a fast, minimal desktop app that helps developers manage all their
 
 ## Cross-Platform Support
 
-ProManager is built with [Tauri v2](https://tauri.app), providing true native binaries for all major desktop platforms:
+LaunchPro is built with [Tauri v2](https://tauri.app), providing true native binaries for all major desktop platforms:
 
 | Platform | Supported | Package Format |
 |----------|-----------|---------------|
@@ -45,11 +45,11 @@ ProManager is built with [Tauri v2](https://tauri.app), providing true native bi
 
 ### Download Pre-built Binary (Recommended)
 
-1. Go to [Releases](https://github.com/king-jingxiang/ProManager/releases)
+1. Go to [Releases](https://github.com/king-jingxiang/LaunchPro/releases)
 2. Download the installer for your platform:
-   - **macOS**: `ProManager_x.x.x_aarch64.dmg` (Apple Silicon) or `ProManager_x.x.x_x64.dmg` (Intel)
-   - **Windows**: `ProManager_x.x.x_x64-setup.exe` or `ProManager_x.x.x_x64_en-US.msi`
-   - **Linux**: `pro-manager_x.x.x_amd64.deb` or `pro-manager_x.x.x_amd64.AppImage`
+   - **macOS**: `LaunchPro_x.x.x_aarch64.dmg` (Apple Silicon) or `LaunchPro_x.x.x_x64.dmg` (Intel)
+   - **Windows**: `LaunchPro_x.x.x_x64-setup.exe` or `LaunchPro_x.x.x_x64_en-US.msi`
+   - **Linux**: `LaunchPro_x.x.x_amd64.deb` or `LaunchPro_x.x.x_amd64.AppImage`
 3. Install and run
 
 > **macOS Note**: On first launch, if you see a security warning, go to **System Settings → Privacy & Security** and click **Open Anyway**.
@@ -67,8 +67,8 @@ ProManager is built with [Tauri v2](https://tauri.app), providing true native bi
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/king-jingxiang/ProManager.git
-cd pro-manager
+git clone https://github.com/king-jingxiang/LaunchPro.git
+cd LaunchPro
 
 # 2. Install frontend dependencies
 pnpm install
@@ -115,7 +115,7 @@ pnpm build
 ## Project Structure
 
 ```
-pro-manager/
+LaunchPro/
 ├── src/                   # React frontend
 │   ├── components/        # UI components
 │   │   ├── project/       # Project list & cards
@@ -150,4 +150,4 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=king-jingxiang/ProManager&type=Date)](https://star-history.com/#king-jingxiang/ProManager&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=king-jingxiang/LaunchPro&type=Date)](https://star-history.com/#king-jingxiang/LaunchPro&Date)

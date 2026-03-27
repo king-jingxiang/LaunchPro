@@ -27,7 +27,7 @@ export function Sidebar() {
   return (
     <div className="w-52 border-r bg-sidebar-background flex flex-col h-full shrink-0">
       <div className="p-4 pb-2">
-        <h1 className="text-lg font-semibold text-sidebar-foreground">ProManager</h1>
+        <h1 className="text-lg font-semibold text-sidebar-foreground">LaunchPro</h1>
       </div>
 
       <nav className="px-2 space-y-0.5">

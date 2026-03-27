@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Generate ProManager app icon - Youthful & Sunny version"""
+"""Generate LaunchPro app icon - Youthful & Sunny version"""
 
 from PIL import Image, ImageDraw
 import os
 
 def create_icon(size=1024):
-    """Create a youthful, energetic app icon for ProManager"""
+    """Create a youthful, energetic app icon for LaunchPro"""
     
     img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
@@ -51,7 +51,7 @@ def create_icon(size=1024):
     # 重新创建绘图对象
     draw = ImageDraw.Draw(img)
     
-    # 绘制白色的"P"字母（代表 ProManager）
+    # 绘制白色的"P"字母（代表 LaunchPro）
     white = (255, 255, 255, 255)
     
     # 计算P字母的尺寸和位置
@@ -277,7 +277,7 @@ if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.abspath(__file__))
     icons_dir = os.path.join(script_dir, 'src-tauri', 'icons')
     
-    print("Generating youthful ProManager icons...")
+    print("Generating youthful LaunchPro icons...")
     print("=" * 50)
     icon = create_icon(1024)
     generate_all_icons(icon, icons_dir)
