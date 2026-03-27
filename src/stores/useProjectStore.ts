@@ -62,5 +62,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     set({ projects });
     const store = getProjectsStore();
     await store.set('projects', projects);
+    // 更新托盘菜单（最近项目顺序可能变化）
+    const { updateTrayMenu } = await import('@/lib/tauri-commands');
+    await updateTrayMenu().catch(() => {});
   },
 }));

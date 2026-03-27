@@ -1,6 +1,15 @@
 use std::path::Path;
 use std::process::Command;
 use tauri::Manager;
+use serde::Serialize;
+
+/// 最近项目信息
+#[derive(Serialize, Clone)]
+pub struct RecentProject {
+    pub id: String,
+    pub name: String,
+    pub path: String,
+}
 
 /// Read system PATH from /etc/paths and common locations on macOS.
 /// Tauri apps don't inherit shell PATH, so we need to build it manually.
@@ -91,4 +100,57 @@ pub fn get_app_data_dir(app_handle: tauri::AppHandle) -> Result<String, String> 
         .app_data_dir()
         .map_err(|e| format!("Failed to get app data dir: {}", e))?;
     Ok(path.to_string_lossy().to_string())
+}
+
+/// 获取最近打开的5个项目
+#[tauri::command]
+pub fn get_recent_projects(app_handle: tauri::AppHandle) -> Result<Vec<RecentProject>, String> {
+    use std::fs;
+    use serde_json::Value;
+
+    let app_data_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data dir: {}", e))?;
+    
+    let store_path = app_data_dir.join("projects.json");
+    
+    if !store_path.exists() {
+        return Ok(vec![]);
+    }
+
+    let content = fs::read_to_string(&store_path)
+        .map_err(|e| format!("Failed to read store file: {}", e))?;
+    
+    let json: Value = serde_json::from_str(&content)
+        .map_err(|e| format!("Failed to parse store file: {}", e))?;
+    
+    let projects = json.get("projects")
+        .and_then(|p| p.as_array())
+        .cloned()
+        .unwrap_or_default();
+
+    // 过滤有 lastOpened 的项目，按时间倒序排序
+    let mut recent: Vec<(i64, RecentProject)> = projects
+        .into_iter()
+        .filter_map(|p| {
+            let id = p.get("id")?.as_str()?.to_string();
+            let name = p.get("name")?.as_str()?.to_string();
+            let path = p.get("path")?.as_str()?.to_string();
+            let last_opened = p.get("lastOpened")?.as_i64()?;
+            Some((last_opened, RecentProject { id, name, path }))
+        })
+        .collect();
+
+    // 按 lastOpened 倒序排序
+    recent.sort_by(|a, b| b.0.cmp(&a.0));
+
+    // 取前5个
+    let result: Vec<RecentProject> = recent
+        .into_iter()
+        .take(5)
+        .map(|(_, project)| project)
+        .collect();
+
+    Ok(result)
 }

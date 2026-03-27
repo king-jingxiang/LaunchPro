@@ -11,6 +11,8 @@ pub fn run() {
             commands::open_project_with_tool,
             commands::check_path_exists,
             commands::get_app_data_dir,
+            commands::get_recent_projects,
+            tray::update_tray_menu,
         ])
         .setup(|app| {
             tray::create_tray(app)?;

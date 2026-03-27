@@ -13,6 +13,16 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubTrigger,
+  ContextMenuSubContent,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useOpenProject } from '@/hooks/useOpenProject';
 import { useProjectStore } from '@/stores/useProjectStore';
@@ -48,108 +58,151 @@ export function ProjectCard({ project }: ProjectCardProps) {
     return p;
   };
 
+  // Context menu content - shared between dropdown and context menu
+  const renderOpenWithSubmenu = () => (
+    <ContextMenuSub>
+      <ContextMenuSubTrigger>
+        <FolderOpen className="h-4 w-4 mr-2" />
+        Open with...
+      </ContextMenuSubTrigger>
+      <ContextMenuSubContent>
+        {tools.map((tool) => (
+          <ContextMenuItem
+            key={tool.id}
+            onClick={() => openProject(project, tool.id)}
+          >
+            <span className="w-5 text-xs font-mono text-muted-foreground">{tool.icon}</span>
+            {tool.name}
+          </ContextMenuItem>
+        ))}
+      </ContextMenuSubContent>
+    </ContextMenuSub>
+  );
+
   return (
     <>
-      <Card className="p-3 hover:bg-accent/50 transition-colors group">
-        <div className="flex items-start gap-3">
-          {/* Icon */}
-          <div className="w-9 h-9 rounded-md bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-            <span className="text-sm font-semibold text-primary">
-              {project.name.charAt(0).toUpperCase()}
-            </span>
-          </div>
-
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="font-medium text-sm truncate">{project.name}</h3>
-              {defaultTool && (
-                <Badge variant="secondary" className="text-[10px] h-4 px-1.5 shrink-0">
-                  {defaultTool.name}
-                </Badge>
-              )}
-            </div>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <p className="text-xs text-muted-foreground truncate mt-0.5 cursor-default">
-                  {shortenPath(project.path)}
-                </p>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" align="start">
-                <p className="text-xs">{project.path}</p>
-              </TooltipContent>
-            </Tooltip>
-            <div className="flex items-center gap-1.5 mt-1.5">
-              {project.tags.map((tag) => (
-                <Badge key={tag} variant="outline" className="text-[10px] h-4 px-1.5">
-                  {tag}
-                </Badge>
-              ))}
-              {lastOpenedStr && (
-                <span className="text-[10px] text-muted-foreground ml-auto shrink-0">
-                  {lastOpenedStr}
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <Card
+            className="p-3 hover:bg-accent/50 transition-colors group cursor-pointer"
+            onDoubleClick={() => openProject(project)}
+          >
+            <div className="flex items-start gap-3">
+              {/* Icon */}
+              <div className="w-9 h-9 rounded-md bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                <span className="text-sm font-semibold text-primary">
+                  {project.name.charAt(0).toUpperCase()}
                 </span>
-              )}
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-medium text-sm truncate">{project.name}</h3>
+                  {defaultTool && (
+                    <Badge variant="secondary" className="text-[10px] h-4 px-1.5 shrink-0">
+                      {defaultTool.name}
+                    </Badge>
+                  )}
+                </div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5 cursor-default">
+                      {shortenPath(project.path)}
+                    </p>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" align="start">
+                    <p className="text-xs">{project.path}</p>
+                  </TooltipContent>
+                </Tooltip>
+                <div className="flex items-center gap-1.5 mt-1.5">
+                  {project.tags.map((tag) => (
+                    <Badge key={tag} variant="outline" className="text-[10px] h-4 px-1.5">
+                      {tag}
+                    </Badge>
+                  ))}
+                  {lastOpenedStr && (
+                    <span className="text-[10px] text-muted-foreground ml-auto shrink-0">
+                      {lastOpenedStr}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8"
+                      onClick={() => openProject(project)}
+                    >
+                      <Play className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Open with {defaultTool?.name ?? 'default tool'}</TooltipContent>
+                </Tooltip>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon" variant="ghost" className="h-8 w-8">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>
+                        <FolderOpen className="h-4 w-4 mr-2" />
+                        Open with...
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        {tools.map((tool) => (
+                          <DropdownMenuItem
+                            key={tool.id}
+                            onClick={() => openProject(project, tool.id)}
+                          >
+                            <span className="w-5 text-xs font-mono text-muted-foreground">{tool.icon}</span>
+                            {tool.name}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setShowEdit(true)}>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-destructive"
+                      onClick={() => deleteProject(project.id)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8"
-                  onClick={() => openProject(project)}
-                >
-                  <Play className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Open with {defaultTool?.name ?? 'default tool'}</TooltipContent>
-            </Tooltip>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost" className="h-8 w-8">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    <FolderOpen className="h-4 w-4 mr-2" />
-                    Open with...
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    {tools.map((tool) => (
-                      <DropdownMenuItem
-                        key={tool.id}
-                        onClick={() => openProject(project, tool.id)}
-                      >
-                        <span className="w-5 text-xs font-mono text-muted-foreground">{tool.icon}</span>
-                        {tool.name}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setShowEdit(true)}>
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="text-destructive"
-                  onClick={() => deleteProject(project.id)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </Card>
+          </Card>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          {renderOpenWithSubmenu()}
+          <ContextMenuSeparator />
+          <ContextMenuItem onClick={() => setShowEdit(true)}>
+            <Pencil className="h-4 w-4 mr-2" />
+            Edit
+          </ContextMenuItem>
+          <ContextMenuItem
+            variant="destructive"
+            onClick={() => deleteProject(project.id)}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
 
       <ProjectFormDialog
         open={showEdit}

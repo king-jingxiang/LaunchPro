@@ -14,3 +14,7 @@ export async function checkPathExists(path: string): Promise<boolean> {
 export async function getAppDataDir(): Promise<string> {
   return invoke('get_app_data_dir');
 }
+
+export async function updateTrayMenu(): Promise<void> {
+  return invoke('update_tray_menu');
+}
