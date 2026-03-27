@@ -4,8 +4,8 @@
 
 **A lightweight cross-platform project manager for developers**
 
-[![GitHub release](https://img.shields.io/github/v/release/king-jingxiang/pro-manager?style=flat-square)](https://github.com/king-jingxiang/pro-manager/releases)
-[![GitHub license](https://img.shields.io/github/license/king-jingxiang/pro-manager?style=flat-square)](LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/king-jingxiang/ProManager?style=flat-square)](https://github.com/king-jingxiang/ProManager/releases)
+[![GitHub license](https://img.shields.io/github/license/king-jingxiang/ProManager?style=flat-square)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-blue?style=flat-square)](#cross-platform-support)
 
 **English** · [简体中文](./README.zh-CN.md)
@@ -45,7 +45,7 @@ ProManager is built with [Tauri v2](https://tauri.app), providing true native bi
 
 ### Download Pre-built Binary (Recommended)
 
-1. Go to [Releases](https://github.com/king-jingxiang/pro-manager/releases)
+1. Go to [Releases](https://github.com/king-jingxiang/ProManager/releases)
 2. Download the installer for your platform:
    - **macOS**: `ProManager_x.x.x_aarch64.dmg` (Apple Silicon) or `ProManager_x.x.x_x64.dmg` (Intel)
    - **Windows**: `ProManager_x.x.x_x64-setup.exe` or `ProManager_x.x.x_x64_en-US.msi`
@@ -67,7 +67,7 @@ ProManager is built with [Tauri v2](https://tauri.app), providing true native bi
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/king-jingxiang/pro-manager.git
+git clone https://github.com/king-jingxiang/ProManager.git
 cd pro-manager
 
 # 2. Install frontend dependencies
@@ -150,4 +150,4 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=king-jingxiang/pro-manager&type=Date)](https://star-history.com/#king-jingxiang/pro-manager&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=king-jingxiang/ProManager&type=Date)](https://star-history.com/#king-jingxiang/ProManager&Date)
