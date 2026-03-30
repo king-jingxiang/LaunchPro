@@ -2,7 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.4.0]
+
+### 🐛 Bug Fixes
+- **Store Sync**: Fixed project data synchronization issue
+  - Reload data from disk before loading projects
+  - Ignore default config to capture external modifications (e.g., CLI writes)
+  - Prevent data inconsistency caused by caching
+
+## [0.3.0]
 
 ### ✨ New Features
 - **CLI Tool**: Added integrated command-line tool installation and path query functionality
