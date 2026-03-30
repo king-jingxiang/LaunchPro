@@ -18,3 +18,17 @@ export async function getAppDataDir(): Promise<string> {
 export async function updateTrayMenu(): Promise<void> {
   return invoke('update_tray_menu');
 }
+
+export interface CliInstallResult {
+  path: string;
+  /** When true, ~/.local/bin is used and needs to be added to PATH */
+  needsPathSetup: boolean;
+}
+
+export async function installCli(alias = 'launch'): Promise<CliInstallResult> {
+  return invoke('install_cli', { alias });
+}
+
+export async function getCliInstallPath(alias = 'launch'): Promise<string> {
+  return invoke('get_cli_install_path', { alias });
+}

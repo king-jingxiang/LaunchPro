@@ -12,6 +12,8 @@ pub fn run() {
             commands::check_path_exists,
             commands::get_app_data_dir,
             commands::get_recent_projects,
+            commands::install_cli,
+            commands::get_cli_install_path,
             tray::update_tray_menu,
         ])
         .setup(|app| {

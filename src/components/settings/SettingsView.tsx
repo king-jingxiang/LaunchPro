@@ -1,6 +1,7 @@
-import { Sun, Moon, Monitor } from 'lucide-react';
+import { Sun, Moon, Monitor, Terminal, CheckCircle2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -12,8 +13,8 @@ import { Separator } from '@/components/ui/separator';
 import { useTheme } from '@/hooks/useTheme';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useToolStore } from '@/stores/useToolStore';
-import { getAppDataDir } from '@/lib/tauri-commands';
-import { useState } from 'react';
+import { getAppDataDir, installCli, getCliInstallPath } from '@/lib/tauri-commands';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
 export function SettingsView() {
@@ -23,6 +24,15 @@ export function SettingsView() {
   const getEnabledTools = useToolStore((s) => s.getEnabledTools);
   const tools = getEnabledTools();
   const [dataDir, setDataDir] = useState<string>('');
+  const [cliAlias, setCliAlias] = useState('launch');
+  const [cliInstallPath, setCliInstallPath] = useState<string>('');
+  const [cliInstalling, setCliInstalling] = useState(false);
+
+  // Check if a CLI with the current alias is already installed
+  useEffect(() => {
+    const trimmed = cliAlias.trim() || 'launch';
+    getCliInstallPath(trimmed).then(setCliInstallPath).catch(() => setCliInstallPath(''));
+  }, [cliAlias]);
 
   const handleShowDataDir = async () => {
     try {
@@ -30,6 +40,27 @@ export function SettingsView() {
       setDataDir(dir);
     } catch (err) {
       toast.error(`Error: ${err}`);
+    }
+  };
+
+  const handleInstallCli = async () => {
+    const alias = cliAlias.trim() || 'launch';
+    setCliInstalling(true);
+    try {
+      const result = await installCli(alias);
+      setCliInstallPath(result.path);
+      if (result.needsPathSetup) {
+        toast.success(
+          `CLI installed to ${result.path}. Add ~/.local/bin to your PATH:\nexport PATH="$HOME/.local/bin:$PATH"`,
+          { duration: 8000 }
+        );
+      } else {
+        toast.success(`CLI installed to ${result.path}`);
+      }
+    } catch (err) {
+      toast.error(`Install failed: ${err}`);
+    } finally {
+      setCliInstalling(false);
     }
   };
 
@@ -87,6 +118,66 @@ export function SettingsView() {
               ))}
             </SelectContent>
           </Select>
+        </Card>
+
+        <Separator />
+
+        {/* CLI Tool */}
+        <Card className="p-4">
+          <div className="flex items-center gap-2 mb-1">
+            <Terminal className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-medium">CLI Tool</h3>
+          </div>
+          <p className="text-xs text-muted-foreground mb-3">
+            Install a command to open any project from the terminal.
+            Run{' '}
+            <code className="font-mono bg-muted px-1 rounded">
+              {(cliAlias.trim() || 'launch')} .
+            </code>{' '}
+            in a directory to open it with its configured tool and record it in LaunchPro.
+          </p>
+
+          {/* Alias input */}
+          <div className="flex items-center gap-2 mb-3">
+            <label className="text-xs text-muted-foreground whitespace-nowrap">Command name</label>
+            <Input
+              value={cliAlias}
+              onChange={(e) => setCliAlias(e.target.value)}
+              placeholder="launch"
+              className="h-7 text-xs font-mono w-36"
+              spellCheck={false}
+            />
+          </div>
+
+          {cliInstallPath ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span>Installed at <code className="font-mono">{cliInstallPath}</code></span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={handleInstallCli}
+                disabled={cliInstalling}
+              >
+                <Download className="h-3.5 w-3.5" />
+                {cliInstalling ? 'Reinstalling...' : 'Reinstall / Update'}
+              </Button>
+            </div>
+          ) : (
+            <Button
+              variant="default"
+              size="sm"
+              className="gap-1.5"
+              onClick={handleInstallCli}
+              disabled={cliInstalling}
+            >
+              <Download className="h-3.5 w-3.5" />
+              {cliInstalling ? 'Installing...' : 'Install CLI'}
+            </Button>
+          )}
         </Card>
 
         <Separator />

@@ -3,6 +3,9 @@ use std::process::Command;
 use tauri::Manager;
 use serde::Serialize;
 
+/// Embedded launch CLI Python script
+const LAUNCH_CLI_SCRIPT: &str = include_str!("../resources/launch_cli.py");
+
 /// 最近项目信息
 #[derive(Serialize, Clone)]
 pub struct RecentProject {
@@ -153,4 +156,86 @@ pub fn get_recent_projects(app_handle: tauri::AppHandle) -> Result<Vec<RecentPro
         .collect();
 
     Ok(result)
+}
+
+/// Returns the path where the launch CLI is currently installed, or empty string if not found.
+/// `alias` is the command name to look for (default: "launch").
+#[tauri::command]
+pub fn get_cli_install_path(alias: String) -> String {
+    let name = if alias.trim().is_empty() { "launch".to_string() } else { alias.trim().to_string() };
+    let home = std::env::var("HOME").unwrap_or_default();
+    let candidates = [
+        format!("/usr/local/bin/{name}"),
+        format!("{home}/.local/bin/{name}"),
+    ];
+    for path in &candidates {
+        if Path::new(path).exists() {
+            return path.clone();
+        }
+    }
+    String::new()
+}
+
+#[derive(Serialize)]
+pub struct CliInstallResult {
+    pub path: String,
+    /// When true, the install path is not in a standard PATH location and the user
+    /// needs to add it manually (e.g. ~/.local/bin).
+    pub needs_path_setup: bool,
+}
+
+/// Install the launch CLI script to the system.
+/// `alias` sets the command name (default: "launch"). Only alphanumeric, hyphens and underscores allowed.
+/// Tries /usr/local/bin/{alias} first; falls back to ~/.local/bin/{alias}.
+#[tauri::command]
+pub fn install_cli(alias: String) -> Result<CliInstallResult, String> {
+    // Resolve alias
+    let name = if alias.trim().is_empty() {
+        "launch".to_string()
+    } else {
+        alias.trim().to_string()
+    };
+
+    // Validate: only allow safe characters for a shell command name
+    if !name.chars().all(|c| c.is_alphanumeric() || c == '-' || c == '_') {
+        return Err(format!(
+            "Invalid alias '{}'. Use only letters, numbers, hyphens and underscores.",
+            name
+        ));
+    }
+
+    // ── Try /usr/local/bin first ─────────────────────────────────────────────
+    let primary_path = format!("/usr/local/bin/{name}");
+    match write_executable(&primary_path, LAUNCH_CLI_SCRIPT) {
+        Ok(_) => {
+            return Ok(CliInstallResult {
+                path: primary_path,
+                needs_path_setup: false,
+            });
+        }
+        Err(_) => {} // fall through to local bin
+    }
+
+    // ── Fall back to ~/.local/bin ────────────────────────────────────────────
+    let home = std::env::var("HOME").map_err(|e| format!("Cannot read $HOME: {e}"))?;
+    let local_bin = format!("{home}/.local/bin");
+    std::fs::create_dir_all(&local_bin)
+        .map_err(|e| format!("Failed to create {local_bin}: {e}"))?;
+    let local_path = format!("{local_bin}/{name}");
+    write_executable(&local_path, LAUNCH_CLI_SCRIPT)
+        .map_err(|e| format!("Failed to install CLI: {e}"))?;
+
+    Ok(CliInstallResult {
+        path: local_path,
+        needs_path_setup: true,
+    })
+}
+
+fn write_executable(path: &str, content: &str) -> std::io::Result<()> {
+    use std::os::unix::fs::PermissionsExt;
+    std::fs::write(path, content)?;
+    let mut perms = std::fs::metadata(path)?.permissions();
+    perms.set_mode(0o755);
+    std::fs::set_permissions(path, perms)?;
+    Ok(())
 }
