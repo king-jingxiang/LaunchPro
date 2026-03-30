@@ -20,6 +20,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   loadProjects: async () => {
     try {
       const store = getProjectsStore();
+      // 先从磁盘重新加载数据，确保获取最新的外部修改（如 CLI 写入的数据）
+      await store.reload({ ignoreDefaults: true });
       const projects = await store.get<Project[]>('projects');
       set({ projects: projects ?? [], isLoading: false });
     } catch {
