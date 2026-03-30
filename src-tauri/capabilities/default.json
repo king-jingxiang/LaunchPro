@@ -12,6 +12,7 @@
     "core:window:allow-unminimize",
     "shell:allow-open",
     "dialog:default",
-    "store:default"
+    "store:default",
+    "autostart:default"
   ]
 }

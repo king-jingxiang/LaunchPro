@@ -1,4 +1,4 @@
-import { Sun, Moon, Monitor, Terminal, CheckCircle2, Download } from 'lucide-react';
+import { Sun, Moon, Monitor, Terminal, CheckCircle2, Download, Power } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,10 +10,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import { useTheme } from '@/hooks/useTheme';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useToolStore } from '@/stores/useToolStore';
-import { getAppDataDir, installCli, getCliInstallPath } from '@/lib/tauri-commands';
+import { getAppDataDir, installCli, getCliInstallPath, getAutostart, setAutostart } from '@/lib/tauri-commands';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
@@ -27,12 +28,28 @@ export function SettingsView() {
   const [cliAlias, setCliAlias] = useState('launch');
   const [cliInstallPath, setCliInstallPath] = useState<string>('');
   const [cliInstalling, setCliInstalling] = useState(false);
+  const [autostartEnabled, setAutostartEnabled] = useState(false);
 
   // Check if a CLI with the current alias is already installed
   useEffect(() => {
     const trimmed = cliAlias.trim() || 'launch';
     getCliInstallPath(trimmed).then(setCliInstallPath).catch(() => setCliInstallPath(''));
   }, [cliAlias]);
+
+  // Load autostart status
+  useEffect(() => {
+    getAutostart().then(setAutostartEnabled).catch(() => setAutostartEnabled(false));
+  }, []);
+
+  const handleAutostartToggle = async (checked: boolean) => {
+    try {
+      await setAutostart(checked);
+      setAutostartEnabled(checked);
+      toast.success(checked ? 'Launch at login enabled' : 'Launch at login disabled');
+    } catch (err) {
+      toast.error(`Failed to update autostart: ${err}`);
+    }
+  };
 
   const handleShowDataDir = async () => {
     try {
@@ -91,6 +108,25 @@ export function SettingsView() {
                 {t.label}
               </Button>
             ))}
+          </div>
+        </Card>
+
+        {/* Launch at Login */}
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Power className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <h3 className="text-sm font-medium">Launch at Login</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Automatically start LaunchPro when you log in
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={autostartEnabled}
+              onCheckedChange={handleAutostartToggle}
+            />
           </div>
         </Card>
 
