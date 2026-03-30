@@ -53,6 +53,11 @@ LaunchPro is built with [Tauri v2](https://tauri.app), providing true native bin
 3. Install and run
 
 > **macOS Note**: On first launch, if you see a security warning, go to **System Settings → Privacy & Security** and click **Open Anyway**.
+>
+> **"LaunchPro.app is damaged" Error**: If you encounter this error on macOS, run the following command in Terminal to remove the quarantine attribute:
+> ```bash
+> sudo xattr -d com.apple.quarantine /Applications/LaunchPro.app
+> ```
 
 ### Build from Source
 

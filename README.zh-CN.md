@@ -53,6 +53,11 @@ LaunchPro 基于 [Tauri v2](https://tauri.app) 构建，为所有主流桌面平
 3. 安装并运行
 
 > **macOS 提示**：首次启动如遇安全警告，请前往 **系统设置 → 隐私与安全性**，点击 **仍要打开**。
+>
+> **"LaunchPro.app 已损坏" 错误**：如果在 macOS 上遇到此错误，请在终端运行以下命令移除隔离属性：
+> ```bash
+> sudo xattr -d com.apple.quarantine /Applications/LaunchPro.app
+> ```
 
 ### 从源码构建
 
