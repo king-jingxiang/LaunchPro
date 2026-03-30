@@ -14,12 +14,61 @@ import subprocess
 import time
 import uuid
 import pathlib
+import platform
 
 VERSION = "1.0.0"
 APP_IDENTIFIER = "com.lancnchpro.app"
-APP_DATA_DIR = os.path.expanduser(
-    f"~/Library/Application Support/{APP_IDENTIFIER}"
-)
+
+
+def get_app_data_dir():
+    """Get the application data directory for the current platform."""
+    system = platform.system()
+    
+    if system == "Darwin":  # macOS
+        return os.path.expanduser(f"~/Library/Application Support/{APP_IDENTIFIER}")
+    elif system == "Windows":
+        # Use LOCALAPPDATA for consistency with Tauri
+        localappdata = os.environ.get("LOCALAPPDATA")
+        if localappdata:
+            return os.path.join(localappdata, APP_IDENTIFIER)
+        # Fallback to APPDATA
+        appdata = os.environ.get("APPDATA")
+        if appdata:
+            return os.path.join(appdata, APP_IDENTIFIER)
+        # Final fallback
+        return os.path.expanduser(f"~\\AppData\\Local\\{APP_IDENTIFIER}")
+    else:  # Linux and other Unix-like systems
+        # Follow XDG Base Directory Specification
+        xdg_data_home = os.environ.get("XDG_DATA_HOME")
+        if xdg_data_home:
+            return os.path.join(xdg_data_home, APP_IDENTIFIER)
+        return os.path.expanduser(f"~/.local/share/{APP_IDENTIFIER}")
+
+
+APP_DATA_DIR = get_app_data_dir()
+
+
+def get_platform_command(tool_id):
+    """Get platform-specific command for built-in tools."""
+    system = platform.system()
+    
+    commands = {
+        "terminal": {
+            "Darwin": "open -a Terminal {path}",
+            "Windows": "cmd /c start cmd /K \"cd /d {path}\"",
+            "Linux": "x-terminal-emulator --working-directory={path}",
+        },
+        "finder": {
+            "Darwin": "open {path}",
+            "Windows": "explorer {path}",
+            "Linux": "xdg-open {path}",
+        },
+    }
+    
+    if tool_id in commands:
+        return commands[tool_id].get(system, commands[tool_id].get("Linux", ""))
+    return None
+
 
 # Fallback tools when tools.json is not found
 DEFAULT_TOOLS = [
@@ -29,8 +78,8 @@ DEFAULT_TOOLS = [
     {"id": "kiro",       "name": "Kiro",         "command": "kiro {path}",           "enabled": True},
     {"id": "codebuddy",  "name": "CodeBuddy",    "command": "codebuddy {path}",      "enabled": True},
     {"id": "trae",       "name": "Trae",         "command": "trae {path}",           "enabled": True},
-    {"id": "terminal",   "name": "Terminal",     "command": "open -a Terminal {path}", "enabled": True},
-    {"id": "finder",     "name": "Finder",       "command": "open {path}",           "enabled": True},
+    {"id": "terminal",   "name": "Terminal",     "command": get_platform_command("terminal"), "enabled": True},
+    {"id": "finder",     "name": "File Manager", "command": get_platform_command("finder"),   "enabled": True},
     {"id": "opencode",   "name": "OpenCode",     "command": "opencode {path}",       "enabled": True},
     {"id": "claudecode", "name": "Claude Code",  "command": "claude {path}",         "enabled": True},
     {"id": "gemini-cli", "name": "Gemini CLI",   "command": "gemini {path}",         "enabled": True},

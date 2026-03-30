@@ -14,39 +14,91 @@ pub struct RecentProject {
     pub path: String,
 }
 
-/// Read system PATH from /etc/paths and common locations on macOS.
+/// Get the PATH separator for the current platform
+#[cfg(windows)]
+const PATH_SEPARATOR: &str = ";";
+#[cfg(not(windows))]
+const PATH_SEPARATOR: &str = ":";
+
+/// Read system PATH and add common locations.
 /// Tauri apps don't inherit shell PATH, so we need to build it manually.
 fn get_system_path() -> String {
     let mut paths: Vec<String> = Vec::new();
 
-    // Read /etc/paths
-    if let Ok(content) = std::fs::read_to_string("/etc/paths") {
-        for line in content.lines() {
-            let trimmed = line.trim();
-            if !trimmed.is_empty() {
-                paths.push(trimmed.to_string());
+    #[cfg(target_os = "macos")]
+    {
+        // Read /etc/paths on macOS
+        if let Ok(content) = std::fs::read_to_string("/etc/paths") {
+            for line in content.lines() {
+                let trimmed = line.trim();
+                if !trimmed.is_empty() {
+                    paths.push(trimmed.to_string());
+                }
+            }
+        }
+
+        // Add macOS-specific paths
+        let home = std::env::var("HOME").unwrap_or_default();
+        let extra_paths = [
+            format!("{home}/.cargo/bin"),
+            format!("{home}/.local/bin"),
+            "/usr/local/bin".to_string(),
+            "/opt/homebrew/bin".to_string(),
+            "/opt/homebrew/sbin".to_string(),
+        ];
+        for p in &extra_paths {
+            if !paths.contains(p) {
+                paths.push(p.clone());
             }
         }
     }
 
-    // Add common paths that IDEs install their CLI tools to
-    let home = std::env::var("HOME").unwrap_or_default();
-    let extra_paths = [
-        format!("{home}/.cargo/bin"),
-        format!("{home}/.local/bin"),
-        "/usr/local/bin".to_string(),
-        "/opt/homebrew/bin".to_string(),
-        "/opt/homebrew/sbin".to_string(),
-    ];
-    for p in &extra_paths {
-        if !paths.contains(p) {
-            paths.push(p.clone());
+    #[cfg(target_os = "linux")]
+    {
+        // Add Linux-specific paths
+        let home = std::env::var("HOME").unwrap_or_default();
+        let extra_paths = [
+            format!("{home}/.cargo/bin"),
+            format!("{home}/.local/bin"),
+            "/usr/local/bin".to_string(),
+            "/usr/bin".to_string(),
+            "/bin".to_string(),
+            "/snap/bin".to_string(),
+            format!("{home}/.nvm/versions/node/*/bin"),
+        ];
+        for p in &extra_paths {
+            if !paths.contains(p) {
+                paths.push(p.clone());
+            }
+        }
+    }
+
+    #[cfg(windows)]
+    {
+        // Add Windows-specific paths
+        let userprofile = std::env::var("USERPROFILE").unwrap_or_default();
+        let localappdata = std::env::var("LOCALAPPDATA").unwrap_or_default();
+        let programfiles = std::env::var("ProgramFiles").unwrap_or_default();
+        let programfiles_x86 = std::env::var("ProgramFiles(x86)").unwrap_or_default();
+
+        let extra_paths = [
+            format!("{}\\AppData\\Local\\Programs\\Microsoft VS Code\\bin", userprofile),
+            format!("{}\\Programs\\cursor\\resources\\app\\bin", localappdata),
+            format!("{}\\Microsoft VS Code\\bin", programfiles),
+            format!("{}\\Git\\cmd", programfiles),
+            format!("{}\\.cargo\\bin", userprofile),
+            format!("{}\\Microsoft VS Code\\bin", programfiles_x86),
+        ];
+        for p in &extra_paths {
+            if !paths.contains(p) {
+                paths.push(p.clone());
+            }
         }
     }
 
     // Include current PATH as fallback
     if let Ok(current) = std::env::var("PATH") {
-        for p in current.split(':') {
+        for p in current.split(PATH_SEPARATOR) {
             let s = p.to_string();
             if !paths.contains(&s) {
                 paths.push(s);
@@ -54,7 +106,7 @@ fn get_system_path() -> String {
         }
     }
 
-    paths.join(":")
+    paths.join(PATH_SEPARATOR)
 }
 
 #[tauri::command]
@@ -163,16 +215,40 @@ pub fn get_recent_projects(app_handle: tauri::AppHandle) -> Result<Vec<RecentPro
 #[tauri::command]
 pub fn get_cli_install_path(alias: String) -> String {
     let name = if alias.trim().is_empty() { "launch".to_string() } else { alias.trim().to_string() };
-    let home = std::env::var("HOME").unwrap_or_default();
-    let candidates = [
-        format!("/usr/local/bin/{name}"),
-        format!("{home}/.local/bin/{name}"),
-    ];
-    for path in &candidates {
-        if Path::new(path).exists() {
-            return path.clone();
+    
+    #[cfg(unix)]
+    {
+        let home = std::env::var("HOME").unwrap_or_default();
+        let candidates = [
+            format!("/usr/local/bin/{name}"),
+            format!("{home}/.local/bin/{name}"),
+        ];
+        for path in &candidates {
+            if Path::new(path).exists() {
+                return path.clone();
+            }
         }
     }
+
+    #[cfg(windows)]
+    {
+        let userprofile = std::env::var("USERPROFILE").unwrap_or_default();
+        let localappdata = std::env::var("LOCALAPPDATA").unwrap_or_default();
+        let script_name = format!("{name}.py");
+        let batch_name = format!("{name}.bat");
+        let candidates = [
+            format!("{}\\AppData\\Local\\Programs\\LaunchPro\\{}", userprofile, script_name),
+            format!("{}\\AppData\\Local\\Programs\\LaunchPro\\{}", userprofile, batch_name),
+            format!("{}\\Programs\\LaunchPro\\{}", localappdata, script_name),
+            format!("{}\\Programs\\LaunchPro\\{}", localappdata, batch_name),
+        ];
+        for path in &candidates {
+            if Path::new(path).exists() {
+                return path.clone();
+            }
+        }
+    }
+
     String::new()
 }
 
@@ -186,7 +262,6 @@ pub struct CliInstallResult {
 
 /// Install the launch CLI script to the system.
 /// `alias` sets the command name (default: "launch"). Only alphanumeric, hyphens and underscores allowed.
-/// Tries /usr/local/bin/{alias} first; falls back to ~/.local/bin/{alias}.
 #[tauri::command]
 pub fn install_cli(alias: String) -> Result<CliInstallResult, String> {
     // Resolve alias
@@ -204,33 +279,69 @@ pub fn install_cli(alias: String) -> Result<CliInstallResult, String> {
         ));
     }
 
-    // ── Try /usr/local/bin first ─────────────────────────────────────────────
-    let primary_path = format!("/usr/local/bin/{name}");
-    match write_executable(&primary_path, LAUNCH_CLI_SCRIPT) {
-        Ok(_) => {
-            return Ok(CliInstallResult {
-                path: primary_path,
-                needs_path_setup: false,
-            });
+    #[cfg(unix)]
+    {
+        // ── Try /usr/local/bin first ─────────────────────────────────────────────
+        let primary_path = format!("/usr/local/bin/{name}");
+        match write_executable(&primary_path, LAUNCH_CLI_SCRIPT) {
+            Ok(_) => {
+                return Ok(CliInstallResult {
+                    path: primary_path,
+                    needs_path_setup: false,
+                });
+            }
+            Err(_) => {} // fall through to local bin
         }
-        Err(_) => {} // fall through to local bin
+
+        // ── Fall back to ~/.local/bin ────────────────────────────────────────────
+        let home = std::env::var("HOME").map_err(|e| format!("Cannot read $HOME: {e}"))?;
+        let local_bin = format!("{home}/.local/bin");
+        std::fs::create_dir_all(&local_bin)
+            .map_err(|e| format!("Failed to create {local_bin}: {e}"))?;
+        let local_path = format!("{local_bin}/{name}");
+        write_executable(&local_path, LAUNCH_CLI_SCRIPT)
+            .map_err(|e| format!("Failed to install CLI: {e}"))?;
+
+        return Ok(CliInstallResult {
+            path: local_path,
+            needs_path_setup: true,
+        });
     }
 
-    // ── Fall back to ~/.local/bin ────────────────────────────────────────────
-    let home = std::env::var("HOME").map_err(|e| format!("Cannot read $HOME: {e}"))?;
-    let local_bin = format!("{home}/.local/bin");
-    std::fs::create_dir_all(&local_bin)
-        .map_err(|e| format!("Failed to create {local_bin}: {e}"))?;
-    let local_path = format!("{local_bin}/{name}");
-    write_executable(&local_path, LAUNCH_CLI_SCRIPT)
-        .map_err(|e| format!("Failed to install CLI: {e}"))?;
+    #[cfg(windows)]
+    {
+        // Windows: Install to AppData\Local\Programs\LaunchPro
+        let localappdata = std::env::var("LOCALAPPDATA")
+            .map_err(|e| format!("Cannot read %LOCALAPPDATA%: {e}"))?;
+        let install_dir = format!("{}\\Programs\\LaunchPro", localappdata);
+        std::fs::create_dir_all(&install_dir)
+            .map_err(|e| format!("Failed to create {install_dir}: {e}"))?;
 
-    Ok(CliInstallResult {
-        path: local_path,
-        needs_path_setup: true,
-    })
+        // Write the Python script
+        let script_path = format!("{}\\{}.py", install_dir, name);
+        std::fs::write(&script_path, LAUNCH_CLI_SCRIPT)
+            .map_err(|e| format!("Failed to write script: {e}"))?;
+
+        // Create a batch wrapper for easy execution
+        let batch_content = format!("@echo off\npython \"%~dp0{}.py\" %*", name);
+        let batch_path = format!("{}\\{}.bat", install_dir, name);
+        std::fs::write(&batch_path, batch_content)
+            .map_err(|e| format!("Failed to write batch file: {e}"))?;
+
+        return Ok(CliInstallResult {
+            path: batch_path,
+            needs_path_setup: true,
+        });
+    }
+
+    #[cfg(not(any(unix, windows)))]
+    {
+        Err("CLI installation is not supported on this platform".to_string())
+    }
 }
 
+/// Write content to a file and make it executable (Unix only)
+#[cfg(unix)]
 fn write_executable(path: &str, content: &str) -> std::io::Result<()> {
     use std::os::unix::fs::PermissionsExt;
     std::fs::write(path, content)?;

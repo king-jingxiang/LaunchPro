@@ -67,10 +67,19 @@ export function SettingsView() {
       const result = await installCli(alias);
       setCliInstallPath(result.path);
       if (result.needsPathSetup) {
-        toast.success(
-          `CLI installed to ${result.path}. Add ~/.local/bin to your PATH:\nexport PATH="$HOME/.local/bin:$PATH"`,
-          { duration: 8000 }
-        );
+        // Detect platform for appropriate PATH setup instructions
+        const isWindows = navigator.userAgent.toLowerCase().includes('win');
+        if (isWindows) {
+          toast.success(
+            `CLI installed to ${result.path}. Add the installation directory to your PATH environment variable.`,
+            { duration: 8000 }
+          );
+        } else {
+          toast.success(
+            `CLI installed to ${result.path}. Add ~/.local/bin to your PATH:\nexport PATH="$HOME/.local/bin:$PATH"`,
+            { duration: 8000 }
+          );
+        }
       } else {
         toast.success(`CLI installed to ${result.path}`);
       }
