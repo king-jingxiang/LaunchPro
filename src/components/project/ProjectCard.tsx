@@ -37,9 +37,11 @@ interface ProjectCardProps {
 export function ProjectCard({ project }: ProjectCardProps) {
   const { openProject } = useOpenProject();
   const deleteProject = useProjectStore((s) => s.deleteProject);
-  const tools = useToolStore((s) => s.tools);
+  const getEnabledTools = useToolStore((s) => s.getEnabledTools);
   const getToolById = useToolStore((s) => s.getToolById);
   const [showEdit, setShowEdit] = useState(false);
+
+  const tools = getEnabledTools();
 
   const defaultTool = project.defaultTool ? getToolById(project.defaultTool) : null;
   const lastOpenedStr = project.lastOpened

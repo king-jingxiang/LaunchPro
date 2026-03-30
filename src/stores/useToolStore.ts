@@ -11,7 +11,9 @@ interface ToolState {
   addTool: (tool: Omit<Tool, 'id' | 'isBuiltin'>) => Promise<void>;
   updateTool: (id: string, updates: Partial<Tool>) => Promise<void>;
   deleteTool: (id: string) => Promise<void>;
+  toggleToolEnabled: (id: string) => Promise<void>;
   getToolById: (id: string) => Tool | undefined;
+  getEnabledTools: () => Tool[];
 }
 
 export const useToolStore = create<ToolState>((set, get) => ({
@@ -68,7 +70,23 @@ export const useToolStore = create<ToolState>((set, get) => ({
     await store.set('tools', tools);
   },
 
+  toggleToolEnabled: async (id) => {
+    const tool = get().tools.find((t) => t.id === id);
+    if (!tool) return;
+    const newEnabled = tool.enabled === false ? true : false;
+    const tools = get().tools.map((t) =>
+      t.id === id ? { ...t, enabled: newEnabled } : t
+    );
+    set({ tools });
+    const store = getToolsStore();
+    await store.set('tools', tools);
+  },
+
   getToolById: (id) => {
     return get().tools.find((t) => t.id === id);
+  },
+
+  getEnabledTools: () => {
+    return get().tools.filter((t) => t.enabled !== false);
   },
 }));

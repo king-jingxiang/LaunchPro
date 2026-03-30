@@ -20,7 +20,8 @@ export function SettingsView() {
   const { theme, setTheme } = useTheme();
   const defaultTool = useSettingsStore((s) => s.settings.defaultTool);
   const updateSettings = useSettingsStore((s) => s.updateSettings);
-  const tools = useToolStore((s) => s.tools);
+  const getEnabledTools = useToolStore((s) => s.getEnabledTools);
+  const tools = getEnabledTools();
   const [dataDir, setDataDir] = useState<string>('');
 
   const handleShowDataDir = async () => {

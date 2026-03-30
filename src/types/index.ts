@@ -15,6 +15,7 @@ export interface Tool {
   icon?: string;
   command: string;
   isBuiltin: boolean;
+  enabled?: boolean; // 默认为 true，设为 false 时在项目选择和菜单中隐藏
 }
 
 export interface Settings {

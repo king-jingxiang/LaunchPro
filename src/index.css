@@ -113,3 +113,18 @@
     overflow: hidden;
   }
 }
+
+/* Switch component — styled via CSS selectors to ensure consistent output
+   across Tailwind v4 production builds (avoids JIT scanning edge cases) */
+.ui-switch[data-state="checked"] {
+  background-color: #059669; /* emerald-600 */
+}
+.ui-switch[data-state="unchecked"] {
+  background-color: rgba(107, 114, 128, 0.35);
+}
+.dark .ui-switch[data-state="checked"] {
+  background-color: #10b981; /* emerald-500 */
+}
+.dark .ui-switch[data-state="unchecked"] {
+  background-color: rgba(156, 163, 175, 0.25);
+}

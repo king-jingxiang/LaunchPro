@@ -33,7 +33,8 @@ interface ProjectFormDialogProps {
 export function ProjectFormDialog({ open: isOpen, onOpenChange, project }: ProjectFormDialogProps) {
   const addProject = useProjectStore((s) => s.addProject);
   const updateProject = useProjectStore((s) => s.updateProject);
-  const tools = useToolStore((s) => s.tools);
+  const getEnabledTools = useToolStore((s) => s.getEnabledTools);
+  const tools = getEnabledTools();
 
   const isEdit = !!project;
   const [name, setName] = useState('');

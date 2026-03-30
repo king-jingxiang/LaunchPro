@@ -8,9 +8,10 @@ import type { Project } from '@/types';
 
 export function useOpenProject() {
   const getToolById = useToolStore((s) => s.getToolById);
-  const tools = useToolStore((s) => s.tools);
+  const getEnabledTools = useToolStore((s) => s.getEnabledTools);
   const defaultTool = useSettingsStore((s) => s.settings.defaultTool);
   const updateLastOpened = useProjectStore((s) => s.updateLastOpened);
+  const enabledTools = getEnabledTools();
 
   const openProject = useCallback(
     async (project: Project, toolId?: string) => {
@@ -39,5 +40,5 @@ export function useOpenProject() {
     [getToolById, defaultTool, updateLastOpened]
   );
 
-  return { openProject, tools };
+  return { openProject, tools: enabledTools };
 }

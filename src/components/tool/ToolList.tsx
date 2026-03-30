@@ -5,6 +5,8 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToolStore } from '@/stores/useToolStore';
 import { ToolFormDialog } from './ToolFormDialog';
 import type { Tool } from '@/types';
@@ -89,15 +91,18 @@ function ToolCard({
   onEdit: () => void;
   onDelete?: () => void;
 }) {
+  const toggleToolEnabled = useToolStore((s) => s.toggleToolEnabled);
+  const isEnabled = tool.enabled !== false;
+
   return (
-    <Card className="p-3">
+    <Card className={`p-3 ${!isEnabled ? 'opacity-60' : ''}`}>
       <div className="flex items-center gap-3">
         <div className="w-9 h-9 rounded-md bg-secondary flex items-center justify-center shrink-0">
           <span className="text-xs font-mono font-semibold">{tool.icon}</span>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-sm">{tool.name}</span>
+            <span className={`font-medium text-sm ${!isEnabled ? 'line-through' : ''}`}>{tool.name}</span>
             {tool.isBuiltin && (
               <Badge variant="secondary" className="text-[10px] h-4">built-in</Badge>
             )}
@@ -107,7 +112,18 @@ function ToolCard({
             <code className="text-xs text-muted-foreground font-mono">{tool.command}</code>
           </div>
         </div>
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Switch
+                checked={isEnabled}
+                onCheckedChange={() => toggleToolEnabled(tool.id)}
+              />
+            </TooltipTrigger>
+            <TooltipContent>
+              {isEnabled ? '点击禁用此工具' : '点击启用此工具'}
+            </TooltipContent>
+          </Tooltip>
           <Button size="icon" variant="ghost" className="h-8 w-8" onClick={onEdit}>
             <Pencil className="h-3.5 w-3.5" />
           </Button>
