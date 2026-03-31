@@ -1,144 +1,74 @@
 #!/usr/bin/env python3
-"""Generate LaunchPro app icon - Youthful & Sunny version"""
+"""Generate app icons from icon_master.png and icon_master_logo.png source files."""
 
-from PIL import Image, ImageDraw
+from PIL import Image
 import os
 
-def create_icon(size=1024):
-    """Create a youthful, energetic app icon for LaunchPro"""
+SOURCE = "icon_master.png"
+LOGO_SOURCE = "icon_master_logo.png"
+
+def make_square(img):
+    """Make the image square by padding with transparent pixels."""
+    w, h = img.size
+    if w == h:
+        return img
+    size = max(w, h)
+    new_img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    offset = ((size - w) // 2, (size - h) // 2)
+    new_img.paste(img, offset)
+    return new_img
+
+def load_source_image():
+    """Load and prepare the source image from icon_master.png."""
+    print("Loading source image...")
+    if not os.path.exists(SOURCE):
+        raise FileNotFoundError(f"Source file not found: {SOURCE}")
     
-    img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
+    img = Image.open(SOURCE).convert("RGBA")
+    print(f"  Original size: {img.size[0]}x{img.size[1]}")
     
-    padding = size // 12
-    
-    # 青春阳光的配色 - 橙色到黄色的活力渐变
-    # 顶部：温暖的橙色，底部：明亮的黄色
-    top_color = (251, 146, 60)      # Orange-400
-    bottom_color = (250, 204, 21)   # Yellow-400
-    accent_color = (239, 68, 68)    # Red-500 for highlights
-    
-    corner_radius = size // 6
-    box_size = size - 2 * padding
-    
-    # 绘制渐变背景
-    for i in range(box_size):
-        ratio = i / box_size
-        r = int(top_color[0] * (1 - ratio) + bottom_color[0] * ratio)
-        g = int(top_color[1] * (1 - ratio) + bottom_color[1] * ratio)
-        b = int(top_color[2] * (1 - ratio) + bottom_color[2] * ratio)
-        
-        y = padding + i
-        draw.rounded_rectangle(
-            [padding, y, size - padding, y + 1],
-            radius=0,
-            fill=(r, g, b, 255)
-        )
-    
-    # 重新绘制圆角矩形来裁剪边缘
-    mask = Image.new('RGBA', (size, size), (0, 0, 0, 0))
-    mask_draw = ImageDraw.Draw(mask)
-    mask_draw.rounded_rectangle(
-        [padding, padding, size - padding, size - padding],
-        radius=corner_radius,
-        fill=(255, 255, 255, 255)
-    )
-    
-    # 应用蒙版
-    img = Image.alpha_composite(Image.new('RGBA', (size, size), (0, 0, 0, 0)), img)
-    img.putalpha(mask.split()[3])
-    
-    # 重新创建绘图对象
-    draw = ImageDraw.Draw(img)
-    
-    # 绘制白色的"P"字母（代表 LaunchPro）
-    white = (255, 255, 255, 255)
-    
-    # 计算P字母的尺寸和位置
-    p_width = box_size * 0.45
-    p_height = box_size * 0.55
-    p_x = (size - p_width) / 2
-    p_y = (size - p_height) / 2
-    
-    stroke_width = max(size // 25, 4)
-    
-    # P的竖线
-    line_x = p_x + p_width * 0.15
-    draw.rounded_rectangle(
-        [line_x, p_y, line_x + stroke_width, p_y + p_height],
-        radius=stroke_width // 2,
-        fill=white
-    )
-    
-    # P的头部弧线（用圆角矩形模拟）
-    head_height = p_height * 0.45
-    head_width = p_width * 0.75
-    head_x = line_x
-    head_y = p_y
-    
-    # 外框
-    draw.rounded_rectangle(
-        [head_x, head_y, head_x + head_width, head_y + head_height],
-        radius=head_height // 2,
-        fill=white
-    )
-    
-    # 内部镂空（使用背景色）
-    inner_padding = stroke_width
-    inner_color = (251, 146, 60)  # 与顶部颜色一致
-    draw.rounded_rectangle(
-        [head_x + inner_padding, head_y + inner_padding, 
-         head_x + head_width - inner_padding, head_y + head_height - inner_padding],
-        radius=(head_height - 2 * inner_padding) // 2,
-        fill=inner_color
-    )
-    
-    # 添加一些小装饰 - 右上角的小星星
-    star_size = size // 20
-    star_x = size - padding - size // 8
-    star_y = padding + size // 8
-    draw_star(draw, star_x, star_y, star_size, white)
+    print("\nMaking image square...")
+    img = make_square(img)
+    print(f"  Square size: {img.size[0]}x{img.size[1]}")
     
     return img
 
-def draw_star(draw, cx, cy, size, color):
-    """Draw a simple 4-point star"""
-    # 简化为一个菱形/十字星
-    half = size // 2
-    # 垂直线
-    draw.rounded_rectangle(
-        [cx - size//6, cy - half, cx + size//6, cy + half],
-        radius=size//12,
-        fill=color
-    )
-    # 水平线
-    draw.rounded_rectangle(
-        [cx - half, cy - size//6, cx + half, cy + size//6],
-        radius=size//12,
-        fill=color
-    )
+def load_logo_image():
+    """Load and prepare the logo image from icon_master_logo.png."""
+    print("Loading logo image for icon.png...")
+    if not os.path.exists(LOGO_SOURCE):
+        raise FileNotFoundError(f"Logo source file not found: {LOGO_SOURCE}")
+    
+    img = Image.open(LOGO_SOURCE).convert("RGBA")
+    print(f"  Original size: {img.size[0]}x{img.size[1]}")
+    
+    print("\nMaking logo image square...")
+    img = make_square(img)
+    print(f"  Square size: {img.size[0]}x{img.size[1]}")
+    
+    return img
 
-def generate_all_icons(base_img, icons_dir):
+def generate_all_icons(base_img, logo_img, icons_dir):
     """Generate all required icon sizes for Tauri"""
     
-    # 定义所有需要的尺寸
+    # 定义所有需要的尺寸 (icon.png 使用 logo_img，其他使用 base_img)
     icon_sizes = {
-        'icon.png': 1024,
-        'icon.ico': 256,
-        '32x32.png': 32,
-        '64x64.png': 64,
-        '128x128.png': 128,
-        '128x128@2x.png': 256,
-        'Square30x30Logo.png': 30,
-        'Square44x44Logo.png': 44,
-        'Square71x71Logo.png': 71,
-        'Square89x89Logo.png': 89,
-        'Square107x107Logo.png': 107,
-        'Square142x142Logo.png': 142,
-        'Square150x150Logo.png': 150,
-        'Square284x284Logo.png': 284,
-        'Square310x310Logo.png': 310,
-        'StoreLogo.png': 50,
+        'icon.png': (1024, 'logo'),  # 使用 logo
+        'icon.ico': (256, 'base'),
+        '32x32.png': (32, 'base'),
+        '64x64.png': (64, 'base'),
+        '128x128.png': (128, 'base'),
+        '128x128@2x.png': (256, 'base'),
+        'Square30x30Logo.png': (30, 'base'),
+        'Square44x44Logo.png': (44, 'base'),
+        'Square71x71Logo.png': (71, 'base'),
+        'Square89x89Logo.png': (89, 'base'),
+        'Square107x107Logo.png': (107, 'base'),
+        'Square142x142Logo.png': (142, 'base'),
+        'Square150x150Logo.png': (150, 'base'),
+        'Square284x284Logo.png': (284, 'base'),
+        'Square310x310Logo.png': (310, 'base'),
+        'StoreLogo.png': (50, 'base'),
     }
     
     # Android 图标尺寸
@@ -174,7 +104,10 @@ def generate_all_icons(base_img, icons_dir):
     os.makedirs(icons_dir, exist_ok=True)
     
     # 生成主图标
-    for filename, s in icon_sizes.items():
+    for filename, (s, source_type) in icon_sizes.items():
+        # 根据类型选择图片源
+        img = logo_img if source_type == 'logo' else base_img
+        
         if filename == 'icon.ico':
             # ICO 文件需要特殊处理
             ico_sizes = [256, 128, 64, 48, 32, 16]
@@ -192,9 +125,10 @@ def generate_all_icons(base_img, icons_dir):
             )
             print(f"  Generated: {filename} (multi-size)")
         else:
-            resized = base_img.resize((s, s), Image.Resampling.LANCZOS)
+            resized = img.resize((s, s), Image.Resampling.LANCZOS)
             resized.save(os.path.join(icons_dir, filename))
-            print(f"  Generated: {filename} ({s}x{s})")
+            source_name = "logo" if source_type == 'logo' else "base"
+            print(f"  Generated: {filename} ({s}x{s}) from {source_name}")
     
     # 生成 Android 图标
     android_dir = os.path.join(icons_dir, 'android')
@@ -227,6 +161,7 @@ def generate_all_icons(base_img, icons_dir):
     # 生成 ICNS (macOS)
     generate_icns(base_img, os.path.join(icons_dir, 'icon.icns'))
     print(f"  Generated: icon.icns (multi-size)")
+
 
 def generate_icns(base_img, output_path):
     """Generate macOS ICNS file"""
@@ -275,11 +210,12 @@ def generate_icns(base_img, output_path):
 
 if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    icons_dir = os.path.join(script_dir, 'src-tauri', 'icons')
+    icons_dir = os.path.join(os.path.dirname(script_dir), 'icons')
     
-    print("Generating youthful LaunchPro icons...")
+    print("Generating app icons from icon_master.png and icon_master_logo.png...")
     print("=" * 50)
-    icon = create_icon(1024)
-    generate_all_icons(icon, icons_dir)
+    icon = load_source_image()
+    logo = load_logo_image()
+    generate_all_icons(icon, logo, icons_dir)
     print("=" * 50)
     print("All icons generated successfully!")
