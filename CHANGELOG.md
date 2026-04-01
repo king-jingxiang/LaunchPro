@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0]
+
+### 🐛 Bug Fixes
+- **ScrollArea Layout**: Fixed scrolling issue in flex container
+  - Added `h-full` to MainLayout for proper height inheritance chain
+  - Applied `min-h-0` to break default `min-height: auto` in flexbox
+  - Resolved content overflow not triggering scroll behavior
+
+### 🎨 Improvements
+- **App Icons**: Updated application icon resources
+
 ## [0.4.0]
 
 ### 🐛 Bug Fixes
