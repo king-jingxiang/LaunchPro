@@ -120,7 +120,7 @@ export function ProjectList() {
       </div>
 
       {/* Project list */}
-      <ScrollArea className="flex-1 h-full">
+      <ScrollArea className="flex-1 min-h-0">
         {filteredProjects.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
             {projects.length === 0 ? (

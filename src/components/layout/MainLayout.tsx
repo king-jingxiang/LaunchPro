@@ -10,7 +10,7 @@ export function MainLayout() {
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-1 h-full overflow-hidden">
         {activeView === 'projects' && <ProjectList />}
         {activeView === 'tools' && <ToolList />}
         {activeView === 'settings' && <SettingsView />}

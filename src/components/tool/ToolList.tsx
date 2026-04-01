@@ -35,7 +35,7 @@ export function ToolList() {
         </Button>
       </div>
 
-      <ScrollArea className="flex-1 h-full">
+      <ScrollArea className="flex-1 min-h-0">
         <div className="p-4 space-y-4">
           {/* Built-in tools */}
           <div>
